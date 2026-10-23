@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>المساعد الدراسي</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F6F8;--card:#fff;--ink:#12263A;--mute:#6B7A8A;--line:#E1E6EB;--pri:#0E7C7B;--pri-s:#DDF1F0;--warn:#B96A00;--warn-s:#FDEBD0;--bad:#C0394B;--ok:#2E8B57}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1A24;--card:#17242F;--ink:#E8EEF3;--mute:#8FA0B0;--line:#243442;--pri:#3CC4C2;--pri-s:#143B3C;--warn:#F2A541;--warn-s:#3A2B14;--bad:#F0707F;--ok:#5CC48A}}
+:root[data-theme="dark"]{--bg:#0F1A24;--card:#17242F;--ink:#E8EEF3;--mute:#8FA0B0;--line:#243442;--pri:#3CC4C2;--pri-s:#143B3C;--warn:#F2A541;--warn-s:#3A2B14;--bad:#F0707F;--ok:#5CC48A}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;display:flex;justify-content:center}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.app{width:100%;max-width:430px;height:100%;display:flex;flex-direction:column;background:var(--bg)}
+header{padding:18px 18px 8px;display:flex;align-items:center;gap:10px}
+header h1{font-size:20px;font-weight:700;flex:1}
+header button{background:none;border:0;color:var(--ink);font-size:22px;cursor:pointer}
+main{flex:1;overflow-y:auto;padding:4px 16px 16px}
+.sec{font-size:14px;color:var(--mute);margin:16px 2px 8px;font-weight:500}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.row{display:flex;align-items:center;gap:12px}
+.dot{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:20px;background:var(--pri-s)}
+.grow{flex:1;min-width:0}
+.t{font-weight:700;font-size:15px}.s{font-size:13px;color:var(--mute);margin-top:2px}
+.badge{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--pri-s);color:var(--pri);font-weight:700}
+.badge.w{background:var(--warn-s);color:var(--warn)}
+.badge.d{background:var(--line);color:var(--mute)}
+.subj{cursor:pointer;transition:transform 0.1s}
+.subj:active{transform:scale(0.98)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 16px 10px}
+.tab{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:99px;font:inherit;font-size:14px;white-space:nowrap;cursor:pointer}
+.tab.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+:root[data-theme="dark"] .tab.on{color:#0F1A24}
+.btn{border:0;border-radius:10px;padding:8px 14px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;background:var(--pri);color:#fff}
+:root[data-theme="dark"] .btn{color:#0F1A24}
+.btn.done{background:var(--pri-s);color:var(--ok)}
+.vote{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:6px 10px;font:inherit;cursor:pointer}
+.vote.on{border-color:var(--pri);color:var(--pri)}
+.solved{color:var(--ok);font-size:13px;font-weight:700;margin-top:6px}
+.del-btn{background:var(--bad);color:#fff;border:none;border-radius:8px;width:34px;height:34px;cursor:pointer;display:grid;place-items:center;font-size:14px;flex-shrink:0}
+nav{display:flex;border-top:1px solid var(--line);background:var(--card);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+nav button{flex:1;background:none;border:0;color:var(--mute);font:inherit;font-size:12px;padding:6px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button span{font-size:20px}
+nav button.on{color:var(--pri);font-weight:700}
+.back{background:none;border:0;color:var(--pri);font:inherit;font-size:15px;cursor:pointer;padding:0 16px 4px}
+.code{font-size:26px;font-weight:700;letter-spacing:3px;text-align:center;direction:ltr;padding:10px;background:var(--pri-s);color:var(--pri);border-radius:12px;margin:8px 0}
+.empty{text-align:center;color:var(--mute);padding:30px 10px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><h1 id="title">اليوم</h1><button id="theme" aria-label="تغيير المظهر">◐</button></header>
+  <div id="tabs"></div>
+  <main id="main"></main>
+  <nav id="nav"></nav>
+</div>
+<script>
+var subjects = []; 
+var hw = [];
+var lectures = {}; 
+var qa = []; 
+var batchCode="CS-S3-2026";
+var view="home",sel=null,tab="lec";
+var currentUser = null; // متغير حفظ بيانات الدخول
+
+var $=function(i){return document.getElementById(i)};
+var sub=function(id){return subjects.filter(function(x){return x.id===id})[0]};
+
+// جلب المواد
+fetch('http://127.0.0.1:8000/api/subjects')
+    .then(response => response.json())
+    .then(data => {
+        subjects = data.map(item => ({
+            id: item.id, n: item.name, i: item.icon, new: item.is_new
+        }));
+        render(); 
+    }).catch(error => console.error("خطأ:", error));
+
+// جلب الواجبات
+fetch('http://127.0.0.1:8000/api/homeworks')
+    .then(response => response.json())
+    .then(data => {
+        hw = data.map(item => ({
+            id: item.id, s: item.subject_id, t: item.title, d: item.due_date, done: item.is_done, soon: true 
+        }));
+        render();
+    }).catch(error => console.error("خطأ:", error));
+
+function nav(){
+    var items=[["home","🏠","الرئيسية"],["hw","✅","الواجبات"],["batch","👥","الدفعة"],["me","⚙️","الحساب"]];
+    $("nav").innerHTML=items.map(function(x){return '<button class="'+(view===x[0]&&!sel?"on":"")+'" onclick="go(\''+x[0]+'\')"><span>'+x[1]+'</span>'+x[2]+'</button>'}).join("");
+}
+
+function go(v){view=v;sel=null;render()}
+
+function hwCard(h,showSub){
+    var b=h.done?'<button class="btn done" onclick="tog('+h.id+')">✓ سلّمت</button>':'<button class="btn" onclick="tog('+h.id+')">سلّمت</button>';
+    return '<div class="card row"><div class="grow"><div class="t">'+h.t+'</div><div class="s">'+(showSub?sub(h.s).n+' • ':'')+'<span class="badge '+(h.done?"d":h.soon?"w":"")+'">'+h.d+'</span></div></div>'+b+'</div>';
+}
+
+function tog(id) {
+    fetch('http://127.0.0.1:8000/api/homeworks/' + id + '/toggle', { method: 'POST' })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            hw.forEach(function(h) {
+                if (h.id === id) {
+                    h.done = data.new_status;
+                    h.d = h.done ? "سُلّم" : "بعد يومين";
+                }
+            });
+            render();
+        }
+    }).catch(error => console.error("خطأ:", error));
+}
+
+function vote(id){qa.forEach(function(q){if(q.id===id){q.my=!q.my;q.v+=q.my?1:-1}});render()}
+
+// دالة جديدة لجلب المحاضرات الحقيقية المحفوظة في قاعدة البيانات
+function loadLectures(subjectId) {
+    fetch('http://127.0.0.1:8000/api/lectures/' + subjectId)
+    .then(response => response.json())
+    .then(data => {
+        lectures[subjectId] = data; // نحفظ البيانات كما جاءت من السيرفر (بها ID واسم ورابط)
+        render(); 
+    })
+    .catch(error => console.error("خطأ في جلب المحاضرات:", error));
+}
+
+// تعديل دالة فتح المادة لكي تجلب المحاضرات من السيرفر فوراً
+function open_(id){
+    sel=id;
+    tab="lec";
+    loadLectures(id); // نأمر المتصفح بجلب الملفات قبل رسم الشاشة
+    render();
+}
+
+// الدالة الهندسية الحقيقية لرفع الملفات
+function handleUpload(event) {
+    var file = event.target.files[0];
+    if (!file) return;
+
+    // تجهيز طرد البيانات (FormData)
+    var formData = new FormData();
+    formData.append("subject_id", sel);     // كود المادة الحالية
+    formData.append("title", file.name);    // اسم الملف
+    formData.append("file", file);          // الملف الفعلي (بايتات)
+
+    // إرسال الطلب للسيرفر
+    // ملاحظة هندسية: مع FormData لا نكتب headers، المتصفح سيتكفل بها تلقائياً
+    fetch('http://127.0.0.1:8000/api/lectures/upload', {
+        method: 'POST',
+        body: formData 
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === "success") {
+            alert("تم رفع الملف بنجاح وحفظه في السيرفر!");
+            loadLectures(sel); // تحديث القائمة فوراً لتشمل الملف الجديد
+        }
+    })
+    .catch(error => console.error("خطأ في الرفع:", error));
+}
+
+function deleteFile(lectureId) {
+    if (confirm("هل أنت متأكد من حذف هذا الملف نهائياً؟")) {
+        fetch('http://127.0.0.1:8000/api/lectures/' + lectureId, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === "success") {
+                loadLectures(sel); // تحديث الشاشة بعد نجاح الحذف
+            }
+        })
+        .catch(error => console.error("خطأ في الحذف:", error));
+    }
+}
+
+function render(){
+    nav();$("tabs").innerHTML="";var m="";
+    
+    if(sel){
+        var s=sub(sel);$("title").textContent=s.i+" "+s.n;
+        $("tabs").innerHTML='<button class="back" onclick="go(\'home\')">← رجوع</button><div class="tabs">'+[["lec","محاضرات"],["hw","واجبات"],["qa","أسئلة"],["ex","امتحانات"]].map(function(t){return '<button class="tab '+(tab===t[0]?"on":"")+'" onclick="tab=\''+t[0]+'\';render()">'+t[1]+'</button>'}).join("")+'</div>';
+
+        if(tab==="lec"){
+            var L = lectures[sel] || [];
+            m = L.length ? L.map(function(l){
+                var clickAction = l.file_url ? 'href="'+l.file_url+'" target="_blank"' : 'href="#"';
+
+                return '<div class="card row subj" style="gap:8px; padding-right:10px;">'+
+                         '<a '+clickAction+' class="grow row" style="text-decoration:none;color:inherit;gap:12px">'+
+                           '<div class="dot">📄</div><div class="grow"><div class="t">'+l.title+'</div><div class="s">تم الرفع</div></div><span class="badge">'+l.file_type+'</span>'+
+                         '</a>'+
+                         // هنا نرسل الـ (l.id) الحقيقي الخاص بقاعدة البيانات
+                         (currentUser && currentUser.role === 'admin' ? '<button class="del-btn" onclick="deleteFile('+l.id+')" title="حذف الملف">✖</button>' : '') +
+                       '</div>';
+            }).join("") : '<div class="empty">لا توجد محاضرات بعد.</div>';
+
+            if (currentUser && currentUser.role === 'admin') {
+                m += '<input type="file" id="fileInput" style="display:none" onchange="handleUpload(event)">';
+                m += '<button class="btn" style="width:100%;padding:12px;margin-top:10px" onclick="document.getElementById(\'fileInput\').click()">+ رفع ملف</button>';
+            }
+        }
+        else if(tab==="hw"){var H=hw.filter(function(h){return h.s===sel});m=H.length?H.map(function(h){return hwCard(h,false)}).join(""):'<div class="empty">ماكو واجبات بهاي المادة.</div>'}
+        else if(tab==="qa"){m=qa.map(function(q){return '<div class="card row" style="align-items:flex-start"><button class="vote '+(q.my?"on":"")+'" onclick="vote('+q.id+')"><span>▲</span><b>'+q.v+'</b></button><div class="grow"><div class="t">'+q.q+'</div>'+(q.a?'<div class="s" style="margin-top:6px">'+q.a+'</div>':'<div class="s">بانتظار جواب</div>')+(q.solved?'<div class="solved">✓ تم الحل</div>':'')+'</div></div>'}).join("")+'<button class="btn" style="width:100%;padding:12px">+ اسأل سؤال</button>'}
+        else if(tab==="ex"){m='<div class="card row"><div class="dot">🗓️</div><div class="grow"><div class="t">الامتحان الشهري الأول</div><div class="s">بعد 3 أسابيع</div></div><span class="badge w">قريب</span></div>'}
+    }
+    else if(view==="home"){
+        $("title").textContent="اليوم";
+        var due=hw.filter(function(h){return h.soon&&!h.done});
+        m='<div class="sec">واجبات قريبة</div>'+(due.length?due.map(function(h){return hwCard(h,true)}).join(""):'<div class="empty">خلصت كل واجباتك 🎉</div>')+'<div class="sec">المواد</div>'+subjects.map(function(s){return '<div class="card row subj" onclick="open_(\''+s.id+'\')"><div class="dot">'+s.i+'</div><div class="grow"><div class="t">'+s.n+'</div></div>'+(s.new?'<span class="badge">'+s.new+' جديد</span>':'')+'</div>'}).join("");
+    }
+    else if(view==="hw"){
+        $("title").textContent="الواجبات";
+        var p=hw.filter(function(h){return !h.done}),d=hw.filter(function(h){return h.done});
+        m='<div class="sec">المتبقي ('+p.length+')</div>'+p.map(function(h){return hwCard(h,true)}).join("")+'<div class="sec">المسلّم ('+d.length+')</div>'+d.map(function(h){return hwCard(h,true)}).join("");
+    }
+    else if(view==="batch"){
+        $("title").textContent="دفعتي";
+        m='<div class="card"><div class="t">الدراسة - المرحلة الثانية</div><div class="s">58 عضو<br>أنت مشرف</div><div class="s" style="margin-top:10px">كود الدعوة</div><div class="code">'+batchCode+'</div><button class="btn" style="width:100%" onclick="this.textContent=\'تم النسخ\'">نسخ الكود</button></div>';
+    } 
+    else if(view==="me") {
+        $("title").textContent = "تسجيل الدخول";
+        m = `
+        <div class="card" style="display:flex; flex-direction:column; gap:12px; padding:20px;">
+            <div class="t" style="text-align:center; font-size:18px;">تسجيل الدخول للنظام</div>
+            <input type="email" id="email" placeholder="البريد الإلكتروني" style="padding:10px; border:1px solid var(--line); border-radius:8px; font:inherit; background:var(--bg); color:var(--ink);">
+            <input type="password" id="password" placeholder="كلمة المرور" style="padding:10px; border:1px solid var(--line); border-radius:8px; font:inherit; background:var(--bg); color:var(--ink);">
+            <button class="btn" style="width:100%; margin-top:10px;" onclick="login()">دخول</button>
+        </div>
+        `;
+    }
+
+    // هذان السطران هما ما قمت بحذفهما وأفسدا عليك الواجهة
+    $("main").innerHTML = m;
+    $("main").scrollTop = 0;
+}
+
+$("theme").onclick=function(){var r=document.documentElement,dark=r.getAttribute("data-theme")==="dark"||(!r.getAttribute("data-theme")&&matchMedia("(prefers-color-scheme: dark)").matches);r.setAttribute("data-theme",dark?"light":"dark")};
+render();
+
+function login() {
+    var email = document.getElementById("email").value;
+    var password = document.getElementById("password").value;
+
+    if(!email || !password) {
+        alert("أدخل الإيميل وكلمة المرور أولاً!");
+        return;
+    }
+
+    fetch('http://127.0.0.1:8000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            currentUser = data.user; 
+            alert(data.message + "\nمرحباً: " + currentUser.name + "\nالصلاحية: " + currentUser.role);
+            go('home'); 
+        } else {
+            alert("فشل الدخول: " + data.detail);
+        }
+    })
+    .catch(error => console.error("خطأ في الاتصال:", error));
+}
+</script>
+</body>
+</html>
