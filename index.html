@@ -125,7 +125,48 @@ function loadLectures(subjectId) {
     })
     .catch(error => console.error("خطأ في جلب المحاضرات:", error));
 }
+function loadQuestions(subjectId) {
+    fetch('https://batch-api-oj4n.vercel.app/api/questions/' + subjectId)
+    .then(response => response.json())
+    .then(data => {
+        questions[subjectId] = data; 
+        render(); 
+    }).catch(error => console.error("خطأ:", error));
+}
 
+// تعديل دالة فتح المادة لتقوم بجلب الأسئلة مع المحاضرات فوراً
+function open_(id){
+    sel=id;
+    tab="lec";
+    loadLectures(id); 
+    loadQuestions(id); // السطر الجديد
+    render();
+}
+
+function askQuestion() {
+    var q = prompt("اكتب سؤالك هنا ليراه الجميع:");
+    if (!q) return;
+    fetch('https://batch-api-oj4n.vercel.app/api/questions/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject_id: sel, q_text: q })
+    }).then(r => r.json()).then(d => { if(d.status === "success") loadQuestions(sel); });
+}
+
+function answerQuestion(q_id) {
+    var a = prompt("اكتب إجابتك كـ مشرف:");
+    if (!a) return;
+    fetch('https://batch-api-oj4n.vercel.app/api/questions/' + q_id + '/answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ a_text: a })
+    }).then(r => r.json()).then(d => { if(d.status === "success") loadQuestions(sel); });
+}
+
+function voteQ(q_id) {
+    fetch('https://batch-api-oj4n.vercel.app/api/questions/' + q_id + '/vote', { method: 'POST' })
+    .then(r => r.json()).then(d => { if(d.status === "success") loadQuestions(sel); });
+}
 function open_(id){
     sel=id;
     tab="lec";
