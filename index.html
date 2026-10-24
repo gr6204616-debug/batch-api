@@ -181,18 +181,34 @@ function render(){
             var L = lectures[sel] || [];
             m = L.length ? L.map(function(l){
                 var clickAction = l.file_url ? 'href="'+l.file_url+'" target="_blank"' : 'href="#"';
+                
+                // خوارزمية فحص الرابط لتحديد اللوغو
+                var icon = "🔗"; 
+                var typeName = "رابط";
+                if (l.file_url) {
+                    if (l.file_url.includes("youtube.com") || l.file_url.includes("youtu.be")) {
+                        icon = "🎥";
+                        typeName = "فيديو";
+                    } else if (l.file_url.includes("drive.google.com")) {
+                        icon = "☁️";
+                        typeName = "درايف";
+                    } else if (l.file_url.includes(".pdf")) {
+                        icon = "📕";
+                        typeName = "PDF";
+                    }
+                }
 
                 return '<div class="card row subj" style="gap:8px; padding-right:10px;">'+
                          '<a '+clickAction+' class="grow row" style="text-decoration:none;color:inherit;gap:12px">'+
-                           '<div class="dot">📄</div><div class="grow"><div class="t">'+l.title+'</div><div class="s">تم الرفع</div></div><span class="badge">'+l.file_type+'</span>'+
+                           '<div class="dot">'+icon+'</div><div class="grow"><div class="t">'+l.title+'</div><div class="s">تم الرفع</div></div><span class="badge">'+typeName+'</span>'+
                          '</a>'+
                          (currentUser && currentUser.role === 'admin' ? '<button class="del-btn" onclick="deleteFile('+l.id+')" title="حذف الملف">✖</button>' : '') +
                        '</div>';
             }).join("") : '<div class="empty">لا توجد محاضرات بعد.</div>';
 
             if (currentUser && currentUser.role === 'admin') {
-    m += '<button class="btn" style="width:100%;padding:12px;margin-top:10px" onclick="handleAddLink()">+ إضافة رابط محاضرة</button>';
-}
+                m += '<button class="btn" style="width:100%;padding:12px;margin-top:10px" onclick="handleAddLink()">+ إضافة رابط محاضرة</button>';
+            }
         }
         else if(tab==="hw"){var H=hw.filter(function(h){return h.s===sel});m=H.length?H.map(function(h){return hwCard(h,false)}).join(""):'<div class="empty">ماكو واجبات بهاي المادة.</div>'}
         else if(tab==="qa"){m=qa.map(function(q){return '<div class="card row" style="align-items:flex-start"><button class="vote '+(q.my?"on":"")+'" onclick="vote('+q.id+')"><span>▲</span><b>'+q.v+'</b></button><div class="grow"><div class="t">'+q.q+'</div>'+(q.a?'<div class="s" style="margin-top:6px">'+q.a+'</div>':'<div class="s">بانتظار جواب</div>')+(q.solved?'<div class="solved">✓ تم الحل</div>':'')+'</div></div>'}).join("")+'<button class="btn" style="width:100%;padding:12px">+ اسأل سؤال</button>'}
