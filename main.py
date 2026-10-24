@@ -146,3 +146,11 @@ def delete_lecture(lecture_id: int, db: Session = Depends(get_db)):
     db.delete(lecture)
     db.commit()
     return {"status": "success", "message": "تم الحذف بنجاح"}
+@app.delete("/api/questions/{q_id}")
+def delete_question(q_id: int, db: Session = Depends(get_db)):
+    question = db.query(models.Question).filter(models.Question.id == q_id).first()
+    if not question:
+        raise HTTPException(status_code=404, detail="السؤال غير موجود")
+    db.delete(question)
+    db.commit()
+    return {"status": "success", "message": "تم الحذف بنجاح"}
