@@ -325,6 +325,20 @@ function login() {
     })
     .catch(error => console.error("خطأ في الاتصال:", error));
 }
+function deleteQuestion(q_id) {
+    if (confirm("بصفتك مشرفاً، هل أنت متأكد من حذف هذا السؤال نهائياً؟")) {
+        fetch('https://batch-api-oj4n.vercel.app/api/questions/' + q_id, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === "success") {
+                loadQuestions(sel); // تحديث القائمة فوراً
+            }
+        })
+        .catch(error => console.error("خطأ في الحذف:", error));
+    }
+}
 </script>
 </body>
 </html>
