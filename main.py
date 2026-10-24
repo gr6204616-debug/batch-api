@@ -58,10 +58,8 @@ db_subjects = [
     {"id": "ar", "name": "اللغة العربية", "icon": "📚", "is_new": 0},
     {"id": "alg", "name": "خوارزميات AI", "icon": "🤖", "is_new": 0}
 ]
-db_homeworks = [
-    {"id": 1, "subject_id": "oop", "title": "واجب الوراثة", "due_date": "بعد يومين", "is_done": False},
-    {"id": 3, "subject_id": "py", "title": "مشروع حاسبة", "due_date": "الأسبوع القادم", "is_done": False}
-]
+db_homeworks = []
+    
 
 @app.post("/api/login")
 def login(credentials: LoginRequest, db: Session = Depends(get_db)):
