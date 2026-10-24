@@ -67,6 +67,7 @@ var subjects = [];
 var hw = [];
 var lectures = {}; 
 var questions = {}; 
+var explanations = {};
 var batchCode="CS-S3-2026";
 var view="home",sel=null,tab="lec";
 var currentUser = JSON.parse(localStorage.getItem('currentUser')) || null; 
@@ -93,7 +94,7 @@ fetch('https://batch-api-oj4n.vercel.app/api/homeworks')
     }).catch(error => console.error("خطأ:", error));
 
 function nav(){
-    var items=[["home","🏠","الرئيسية"],["hw","✅","الواجبات"],["batch","👥","الدفعة"],["me","⚙️","الحساب"]];
+    var items=[["home","🏠","الرئيسية"],["batch","👥","الدفعة"],["me","⚙️","الحساب"]];
     $("nav").innerHTML=items.map(function(x){return '<button class="'+(view===x[0]&&!sel?"on":"")+'" onclick="go(\''+x[0]+'\')"><span>'+x[1]+'</span>'+x[2]+'</button>'}).join("");
 }
 
@@ -177,6 +178,8 @@ function open_(id){
     sel=id;
     tab="lec";
     loadLectures(id); 
+    loadQuestions(id);
+    loadExplanations(id); // إضافة هذا السطر
     render();
 }
 
@@ -228,7 +231,7 @@ function render(){
     
     if(sel){
         var s=sub(sel);$("title").textContent=s.i+" "+s.n;
-        $("tabs").innerHTML='<button class="back" onclick="go(\'home\')">← رجوع</button><div class="tabs">'+[["lec","محاضرات"],["hw","واجبات"],["qa","أسئلة"],["ex","امتحانات"]].map(function(t){return '<button class="tab '+(tab===t[0]?"on":"")+'" onclick="tab=\''+t[0]+'\';render()">'+t[1]+'</button>'}).join("")+'</div>';
+        $("tabs").innerHTML='<button class="back" onclick="go(\'home\')">← رجوع</button><div class="tabs">'+[["lec","محاضرات"],["exp","الشروحات"],["qa","أسئلة"]].map(function(t){return '<button class="tab '+(tab===t[0]?"on":"")+'" onclick="tab=\''+t[0]+'\';render()">'+t[1]+'</button>'}).join("")+'</div>';
 
         if(tab==="lec"){
             var L = lectures[sel] || [];
@@ -263,7 +266,21 @@ function render(){
                 m += '<button class="btn" style="width:100%;padding:12px;margin-top:10px" onclick="handleAddLink()">+ إضافة رابط محاضرة</button>';
             }
         }
-        else if(tab==="hw"){var H=hw.filter(function(h){return h.s===sel});m=H.length?H.map(function(h){return hwCard(h,false)}).join(""):'<div class="empty">ماكو واجبات بهاي المادة.</div>'}
+        else if(tab==="exp"){
+            var E = explanations[sel] || [];
+            m = E.length ? E.map(function(e){
+                return '<div class="card row subj" style="gap:8px; padding-right:10px;">'+
+                         '<a href="'+e.video_url+'" target="_blank" class="grow row" style="text-decoration:none;color:inherit;gap:12px">'+
+                           '<div class="dot" style="background:var(--bad);">▶️</div><div class="grow"><div class="t">'+e.title+'</div><div class="s">فيديو يوتيوب</div></div>'+
+                         '</a>'+
+                         (currentUser && currentUser.role === 'admin' ? '<button class="del-btn" onclick="deleteExp('+e.id+')" title="حذف الشرح">✖</button>' : '') +
+                       '</div>';
+            }).join("") : '<div class="empty">لا توجد شروحات مضافة بعد.</div>';
+
+            if (currentUser && currentUser.role === 'admin') {
+                m += '<button class="btn" style="width:100%;padding:12px;margin-top:10px" onclick="handleAddExp()">+ إضافة رابط شرح</button>';
+            }
+        }
         else if(tab==="qa"){
             var Q = questions[sel] || [];
             m = Q.length ? Q.map(function(q){
@@ -285,7 +302,6 @@ function render(){
             
             m += '<button class="btn" style="width:100%;padding:12px;margin-top:10px" onclick="askQuestion()">+ اسأل سؤال</button>';
         }
-        else if(tab==="ex"){m='<div class="card row"><div class="dot">🗓️</div><div class="grow"><div class="t">الامتحان الشهري الأول</div><div class="s">بعد 3 أسابيع</div></div><span class="badge w">قريب</span></div>'}
     }
     else if(view==="home"){
         $("title").textContent="اليوم";
@@ -383,6 +399,39 @@ function deleteQuestion(q_id) {
             }
         })
         .catch(error => console.error("خطأ في الحذف:", error));
+    }
+}
+function loadExplanations(subjectId) {
+    fetch('https://batch-api-oj4n.vercel.app/api/explanations/' + subjectId)
+    .then(response => response.json())
+    .then(data => {
+        explanations[subjectId] = data; 
+        render(); 
+    }).catch(error => console.error("خطأ:", error));
+}
+
+function handleAddExp() {
+    var title = prompt("أدخل عنوان الشرح (مثال: شرح المصفوفات):");
+    if (!title) return;
+    var url = prompt("أدخل رابط فيديو اليوتيوب:");
+    if (!url) return;
+
+    url = url.trim();
+    if (!url.startsWith("http://") && !url.startsWith("https://")) url = "https://" + url;
+
+    fetch('https://batch-api-oj4n.vercel.app/api/explanations/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject_id: sel, title: title, video_url: url })
+    }).then(r => r.json()).then(d => { 
+        if(d.status === "success") loadExplanations(sel); 
+    });
+}
+
+function deleteExp(id) {
+    if (confirm("حذف هذا الشرح نهائياً؟")) {
+        fetch('https://batch-api-oj4n.vercel.app/api/explanations/' + id, { method: 'DELETE' })
+        .then(r => r.json()).then(d => { if(d.status === "success") loadExplanations(sel); });
     }
 }
 </script>
