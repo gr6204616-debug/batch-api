@@ -252,7 +252,17 @@ function render(){
             }
         }
         else if(tab==="hw"){var H=hw.filter(function(h){return h.s===sel});m=H.length?H.map(function(h){return hwCard(h,false)}).join(""):'<div class="empty">ماكو واجبات بهاي المادة.</div>'}
-        else if(tab==="qa"){m=qa.map(function(q){return '<div class="card row" style="align-items:flex-start"><button class="vote '+(q.my?"on":"")+'" onclick="vote('+q.id+')"><span>▲</span><b>'+q.v+'</b></button><div class="grow"><div class="t">'+q.q+'</div>'+(q.a?'<div class="s" style="margin-top:6px">'+q.a+'</div>':'<div class="s">بانتظار جواب</div>')+(q.solved?'<div class="solved">✓ تم الحل</div>':'')+'</div></div>'}).join("")+'<button class="btn" style="width:100%;padding:12px">+ اسأل سؤال</button>'}
+        else if(tab==="qa"){
+            var Q = questions[sel] || [];
+            m = Q.length ? Q.map(function(q){
+                var ansHtml = q.a_text ? '<div class="s" style="margin-top:6px; color:var(--ok); font-weight:bold;">الجواب: '+q.a_text+'</div>' : '<div class="s">بانتظار جواب</div>';
+                var adminBtn = (currentUser && currentUser.role === 'admin' && !q.a_text) ? '<button class="badge w" style="border:none; cursor:pointer;" onclick="answerQuestion('+q.id+')">أجب</button>' : '';
+                
+                return '<div class="card row" style="align-items:flex-start"><button class="vote" style="border:none" onclick="voteQ('+q.id+')"><span>▲</span><b>'+q.votes+'</b></button><div class="grow"><div class="t">'+q.q_text+'</div>'+ansHtml+'</div>'+adminBtn+'</div>';
+            }).join("") : '<div class="empty">لا توجد أسئلة بعد. اطرح سؤالك الأول!</div>';
+            
+            m += '<button class="btn" style="width:100%;padding:12px;margin-top:10px" onclick="askQuestion()">+ اسأل سؤال</button>';
+        }
         else if(tab==="ex"){m='<div class="card row"><div class="dot">🗓️</div><div class="grow"><div class="t">الامتحان الشهري الأول</div><div class="s">بعد 3 أسابيع</div></div><span class="badge w">قريب</span></div>'}
     }
     else if(view==="home"){
