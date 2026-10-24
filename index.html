@@ -187,6 +187,12 @@ function handleAddLink() {
     var url = prompt("أدخل الرابط العام للمحاضرة (من جوجل درايف أو غيره):");
     if (!url) return;
 
+    // الخوارزمية الهندسية لتصحيح الرابط تلقائياً
+    url = url.trim();
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        url = "https://" + url;
+    }
+
     fetch('https://batch-api-oj4n.vercel.app/api/lectures/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -237,8 +243,8 @@ function render(){
                         icon = "🎥";
                         typeName = "فيديو";
                     } else if (l.file_url.includes("drive.google.com")) {
-                        icon = "☁️";
-                        typeName = "درايف";
+                        icon = "📕";
+                        typeName = "PDF";
                     } else if (l.file_url.includes(".pdf")) {
                         icon = "📕";
                         typeName = "PDF";
