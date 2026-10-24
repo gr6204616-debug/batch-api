@@ -13,7 +13,7 @@
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;display:flex;justify-content:center}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-.app{width:100%;max-width:430px;height:100%;display:flex;flex-direction:column;background:var(--bg)}
+.app{width:100%;max-width:900px;height:100%;display:flex;flex-direction:column;background:var(--bg);margin:0 auto;box-shadow:0 0 20px rgba(0,0,0,0.1)}
 header{padding:18px 18px 8px;display:flex;align-items:center;gap:10px}
 header h1{font-size:20px;font-weight:700;flex:1}
 header button{background:none;border:0;color:var(--ink);font-size:22px;cursor:pointer}
@@ -47,6 +47,12 @@ nav button.on{color:var(--pri);font-weight:700}
 .back{background:none;border:0;color:var(--pri);font:inherit;font-size:15px;cursor:pointer;padding:0 16px 4px}
 .code{font-size:26px;font-weight:700;letter-spacing:3px;text-align:center;direction:ltr;padding:10px;background:var(--pri-s);color:var(--pri);border-radius:12px;margin:8px 0}
 .empty{text-align:center;color:var(--mute);padding:30px 10px;font-size:14px}
+@media (min-width: 768px) {
+    #main { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; align-content: start; }
+    .sec { grid-column: 1 / -1; }
+    .empty { grid-column: 1 / -1; }
+    .card { margin-bottom: 0; }
+}
 </style>
 </head>
 <body>
