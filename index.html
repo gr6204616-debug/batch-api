@@ -292,9 +292,22 @@ function render(){
         m='<div class="sec">المتبقي ('+p.length+')</div>'+p.map(function(h){return hwCard(h,true)}).join("")+'<div class="sec">المسلّم ('+d.length+')</div>'+d.map(function(h){return hwCard(h,true)}).join("");
     }
     else if(view==="batch"){
-        $("title").textContent="دفعتي";
-        m='<div class="card"><div class="t">الدراسة - المرحلة الثانية</div><div class="s">58 عضو<br>أنت مشرف</div><div class="s" style="margin-top:10px">كود الدعوة</div><div class="code">'+batchCode+'</div><button class="btn" style="width:100%" onclick="this.textContent=\'تم النسخ\'">نسخ الكود</button></div>';
-    } 
+        $("title").textContent="معلومات الدفعة";
+        m = `
+        <div class="card" style="grid-column: 1 / -1; text-align:center; padding:30px 20px;">
+            <div class="dot" style="margin:0 auto 15px; width:60px; height:60px; font-size:30px;">🎓</div>
+            <div class="t" style="font-size:18px;">هندسة الذكاء الاصطناعي - المرحلة الأولى</div>
+            <div class="s" style="margin-top:5px;">إشراف وإدارة: مهدي (ممثل الدفعة)</div>
+            <hr style="border:0; border-top:1px solid var(--line); margin:20px 0;">
+            <p class="s" style="margin-bottom:15px; line-height:1.6; font-size:14px;">
+                هذا النظام مخصص لتنظيم المحاضرات والأسئلة. جميع الشروحات والمواد تقدم للطلاب مجاناً ولا يتطلب النظام أي أكواد دعوة لتنزيل الملفات.
+            </p>
+            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                <a href="#" class="btn" style="text-decoration:none; flex:1; min-width:140px;">قناة التليجرام</a>
+                <a href="#" class="btn done" style="text-decoration:none; flex:1; min-width:140px;">جدول المحاضرات</a>
+            </div>
+        </div>`;
+    }
     else if(view==="me") {
         $("title").textContent = "تسجيل الدخول";
         m = `
