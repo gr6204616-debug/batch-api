@@ -256,9 +256,19 @@ function render(){
             var Q = questions[sel] || [];
             m = Q.length ? Q.map(function(q){
                 var ansHtml = q.a_text ? '<div class="s" style="margin-top:6px; color:var(--ok); font-weight:bold;">الجواب: '+q.a_text+'</div>' : '<div class="s">بانتظار جواب</div>';
-                var adminBtn = (currentUser && currentUser.role === 'admin' && !q.a_text) ? '<button class="badge w" style="border:none; cursor:pointer;" onclick="answerQuestion('+q.id+')">أجب</button>' : '';
                 
-                return '<div class="card row" style="align-items:flex-start"><button class="vote" style="border:none" onclick="voteQ('+q.id+')"><span>▲</span><b>'+q.votes+'</b></button><div class="grow"><div class="t">'+q.q_text+'</div>'+ansHtml+'</div>'+adminBtn+'</div>';
+                // أزرار الإدارة (الرد + الحذف)
+                var adminBtns = '';
+                if (currentUser && currentUser.role === 'admin') {
+                    adminBtns += '<div style="display:flex; flex-direction:column; gap:4px; margin-right:auto;">';
+                    adminBtns += '<button class="del-btn" style="width:30px;height:30px;font-size:12px;" onclick="deleteQuestion('+q.id+')" title="حذف السؤال">✖</button>';
+                    if (!q.a_text) {
+                        adminBtns += '<button class="badge w" style="border:none; cursor:pointer; padding:6px;" onclick="answerQuestion('+q.id+')">أجب</button>';
+                    }
+                    adminBtns += '</div>';
+                }
+                
+                return '<div class="card row" style="align-items:flex-start"><button class="vote" style="border:none" onclick="voteQ('+q.id+')"><span>▲</span><b>'+q.votes+'</b></button><div class="grow"><div class="t">'+q.q_text+'</div>'+ansHtml+'</div>'+adminBtns+'</div>';
             }).join("") : '<div class="empty">لا توجد أسئلة بعد. اطرح سؤالك الأول!</div>';
             
             m += '<button class="btn" style="width:100%;padding:12px;margin-top:10px" onclick="askQuestion()">+ اسأل سؤال</button>';
