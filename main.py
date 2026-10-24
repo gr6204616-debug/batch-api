@@ -54,7 +54,29 @@ class QuestionCreate(BaseModel):
 
 class AnswerCreate(BaseModel):
     a_text: str
+class ExplanationCreate(BaseModel):
+    subject_id: str
+    title: str
+    video_url: str
 
+@app.get("/api/explanations/{subject_id}")
+def get_explanations(subject_id: str, db: Session = Depends(get_db)):
+    return db.query(models.Explanation).filter(models.Explanation.subject_id == subject_id).all()
+
+@app.post("/api/explanations/add")
+def add_explanation(exp: ExplanationCreate, db: Session = Depends(get_db)):
+    new_exp = models.Explanation(subject_id=exp.subject_id, title=exp.title, video_url=exp.video_url)
+    db.add(new_exp)
+    db.commit()
+    return {"status": "success"}
+
+@app.delete("/api/explanations/{exp_id}")
+def delete_explanation(exp_id: int, db: Session = Depends(get_db)):
+    exp = db.query(models.Explanation).filter(models.Explanation.id == exp_id).first()
+    if exp:
+        db.delete(exp)
+        db.commit()
+    return {"status": "success"}
 @app.get("/api/questions/{subject_id}")
 def get_questions(subject_id: str, db: Session = Depends(get_db)):
     # ترتيب الأسئلة حسب التصويت (الأعلى أولاً)
@@ -144,13 +166,5 @@ def delete_lecture(lecture_id: int, db: Session = Depends(get_db)):
     if not lecture:
         raise HTTPException(status_code=404, detail="الملف غير موجود")
     db.delete(lecture)
-    db.commit()
-    return {"status": "success", "message": "تم الحذف بنجاح"}
-@app.delete("/api/questions/{q_id}")
-def delete_question(q_id: int, db: Session = Depends(get_db)):
-    question = db.query(models.Question).filter(models.Question.id == q_id).first()
-    if not question:
-        raise HTTPException(status_code=404, detail="السؤال غير موجود")
-    db.delete(question)
     db.commit()
     return {"status": "success", "message": "تم الحذف بنجاح"}
