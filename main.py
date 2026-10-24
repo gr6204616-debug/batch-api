@@ -48,7 +48,41 @@ class HomeworkResponse(BaseModel):
     title: str
     due_date: str
     is_done: bool
+class QuestionCreate(BaseModel):
+    subject_id: str
+    q_text: str
 
+class AnswerCreate(BaseModel):
+    a_text: str
+
+@app.get("/api/questions/{subject_id}")
+def get_questions(subject_id: str, db: Session = Depends(get_db)):
+    # ترتيب الأسئلة حسب التصويت (الأعلى أولاً)
+    return db.query(models.Question).filter(models.Question.subject_id == subject_id).order_by(models.Question.votes.desc()).all()
+
+@app.post("/api/questions/add")
+def add_question(q: QuestionCreate, db: Session = Depends(get_db)):
+    new_q = models.Question(subject_id=q.subject_id, q_text=q.q_text, a_text="")
+    db.add(new_q)
+    db.commit()
+    return {"status": "success"}
+
+@app.post("/api/questions/{q_id}/answer")
+def answer_question(q_id: int, ans: AnswerCreate, db: Session = Depends(get_db)):
+    question = db.query(models.Question).filter(models.Question.id == q_id).first()
+    if not question:
+        raise HTTPException(status_code=404, detail="السؤال غير موجود")
+    question.a_text = ans.a_text
+    db.commit()
+    return {"status": "success"}
+
+@app.post("/api/questions/{q_id}/vote")
+def vote_question(q_id: int, db: Session = Depends(get_db)):
+    question = db.query(models.Question).filter(models.Question.id == q_id).first()
+    if question:
+        question.votes += 1
+        db.commit()
+    return {"status": "success"}
 # بيانات وهمية مؤقتة للمواد والواجبات
 db_subjects = [
     {"id": "oop", "name": "برمجة شيئية", "icon": "💻", "is_new": 0},
