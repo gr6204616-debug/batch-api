@@ -22,3 +22,9 @@ class Question(Base):
     q_text = Column(String)
     a_text = Column(String, nullable=True) # الإجابة يمكن أن تكون فارغة في البداية
     votes = Column(Integer, default=0)
+class Explanation(Base):
+    __tablename__ = "explanations"
+    id = Column(Integer, primary_key=True, index=True)
+    subject_id = Column(String, index=True)
+    title = Column(String)
+    video_url = Column(String)
